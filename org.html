@@ -1,0 +1,142 @@
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <title>Example Corp Organizasyon</title>
+	  <link rel="stylesheet" href="/org/css/font-awesome.min.css">
+	  <link rel="stylesheet" href="/org/css/jquery.orgchart.css">
+	  <link rel="stylesheet" href="/org/css/style.css">
+	  <style type="text/css">
+		#chart-container { height:  90%; }
+		.orgchart { background: white; }
+		.orgchart .node .edge { display: none; }
+		.orgchart .toggleBtn { display: none; }
+		.hidden { display: none; }
+		.inline { display: inline; }
+		#detail { 
+			height: 100%; 
+			width:400px; 
+			position: fixed;
+			z-index: 9999;
+			background-color: #eeeeee;
+			margin-left: -400px;
+			padding: 15px;
+			-webkit-box-shadow: -5px 0px 10px 3px #999999;
+			-moz-box-shadow: -5px 0px 10px 3px #999999;
+			box-shadow: -5px 0px 10px 3px #999999;
+			font-family: Verdana;
+			font-size: 14pt;
+		}
+		#edit-panel {
+		  text-align: center;
+		  position: relative;
+		  left: 10px;
+		  width: calc(100% - 40px);
+		  border-radius: 4px;
+		  float: left;
+		  margin-top: 10px;
+		  padding: 10px;
+		  color: #fff;
+		  background-color: #cccccc;
+		  font-size: 20px;
+		  font-weight: lighter
+		}
+		.searchres{
+			background-color: #ff6666;
+		}
+	  
+	  </style>
+	</head>
+	<body>
+	  <div id="chart-container"></div>
+	  <div id="edit-panel" class="view-state">
+		<input type="text" id="keyword">
+		<button type="button" id="btn-search">Search</button>
+	  </div>  
+	  <div id="detail" class="hidden"></div>
+	  <script type="text/javascript" src="/org/js/jquery.min.js"></script>
+	  <script type="text/javascript" src="/org/js/jquery.orgchart.js"></script>
+	  <script type="text/javascript">
+	  
+		var datas=[];
+		var dataIdx=0;
+
+	
+		$.ajax({
+			url: "org.json",
+			type: "GET",
+			dataType: 'text',
+			success: function( theData ) {
+				var data =  JSON.parse(theData);
+				$('#chart-container').orgchart({
+					'data' : data,
+					'nodeContent': 'title',
+					'verticalLevel': 4,
+					'visibleLevel': 10,
+					'nodeTemplate': function(data){
+										datas[dataIdx++] = data;
+										return '<div class="node" data-id="' + (dataIdx-1) + '">' + 
+															'<div class="title" >' + data['title'] + '</div>' + 
+															'<div><img style="height:80px;width:70px" src="' + data['image'] + '"></div>' + 
+															'<div class="content">' + data['name'] + '</div>' + 
+														'</div>';
+										
+									},
+					'initCompleted': function(){
+										console.log("Init completed:" + $('.node').length)
+										$('#chart-container').on('click', function(){		
+											$('#detail').removeClass('inline').addClass('hidden');
+										});				
+										$('.node').on('click', function(event) {
+											var data = datas[$(this).data("id")];
+											if (data) {
+												$('#detail').removeClass('hidden').addClass('inline');
+												$('#detail').html(
+												'<div><center>' + 
+													'<br>'+
+													'<br>'+
+													'<div><br><img style="height:160px;width:140px" src="' + data['image'] + '"></div>' + 
+													'<div ><br><b>' + data['name'] + '</b></div>' +
+													'<div >' + data['title'] + '</div>' + 
+													'<br></center>'+
+													'<div ><br><b>Mobile:</b> ' + data['mobile'] + '</div>' +
+													'<div ><br><b>E-Mail:</b> ' + data['mail'] + '</div>' +
+												'</div>'
+												)
+											}
+											event.stopPropagation();
+											event.preventDefault();
+										});
+									}
+				});
+				
+				
+				$('#keyword').keydown(function(event) {
+					if (event.keyCode == 13) {
+						$('#btn-search').trigger('click');
+						return false;
+					}
+				});
+				$('#btn-search').on('click', function(){
+					var $chart = $('#chart-container');
+					$chart.find('.searchres').removeClass('searchres');
+					var foundNode = $chart.find('.node').filter(function(index, node) {
+						return $(node).text().toLowerCase().indexOf($('#keyword').val().toLowerCase()) > -1;
+					}).first().addClass('searchres');
+					if (foundNode) {
+						$chart.scrollTop(0);
+						$chart.scrollLeft(0);
+						$chart.scrollTop(foundNode.offset().top - $chart.offset().top  - $chart.height()/2 -50);
+						$chart.scrollLeft(foundNode.offset().left - $chart.offset().left - $chart.width()/2 -50);
+					}
+				});
+				
+			}
+		});
+
+	  </script>
+	  </body>
+	</html>
+
+
+	  
