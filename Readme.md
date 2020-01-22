@@ -2,7 +2,7 @@
 # OrgTraverse
 
 A small script for extracting the organization data from Active Directory.
-And a simple web site to present a organizational chart 
+And a simple web site to present an organizational chart 
 
 Example organization json;
 
